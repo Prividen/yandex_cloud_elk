@@ -1,0 +1,8 @@
+---
+- name: Test create_text_file role
+  hosts: localhost
+  vars:
+    file_path: my_file.txt
+    content: "write this content\n"
+  roles:
+    - prividen.yandex_cloud_elk.create_text_file

@@ -1,0 +1,5 @@
+---
+- name: Create file with content
+  prividen.yandex_cloud_elk.create_text_file:
+    path: "{{ file_path }}"
+    content: "{{ content }}"
