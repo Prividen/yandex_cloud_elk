@@ -96,12 +96,15 @@ public_ip:
 '''
 
 from ansible.module_utils.basic import AnsibleModule
+from ansible.module_utils._text import to_native
+from subprocess import PIPE
 
 import yaml
 import subprocess
+import shutil
 
-#import pydevd_pycharm
-#    pydevd_pycharm.settrace('localhost', port=45000, stdoutToServer=True, stderrToServer=True)
+# import pydevd_pycharm
+# pydevd_pycharm.settrace('localhost', port=45000, stdoutToServer=True, stderrToServer=True)
 
 DEFAULT_CORES = 2
 DEFAULT_MEMORY_G = 2
@@ -114,18 +117,18 @@ def run_yc(yc_options):
     result = {"changed": False}
 
     yc_cmd = f"yc --no-user-output --format yaml {yc_options}"
-    yc_result = subprocess.run(yc_cmd.split(" "), capture_output=True)
+    yc_result = subprocess.run(yc_cmd, stdout=PIPE, stderr=PIPE, shell=True)
     if yc_result.returncode > 0:
         module.fail_json(
-            msg=f"Error running yc: {yc_result.stderr}",
-            cmd="yc " + yc_options,
+            msg=f"Error running yc: {to_native(yc_result.stderr)}",
+            cmd=to_native("yc " + yc_options),
             **result
         )
 
     try:
         parsed_content = yaml.safe_load(yc_result.stdout)
     except yaml.YAMLError as e:
-        module.fail_json(msg=e, **result)
+        module.fail_json(msg=to_native(e), **result)
 
     return parsed_content
 
@@ -139,9 +142,11 @@ def create_instance(name, cores, memory_g, disk_g, image, ssh_key):
     instance_details = run_yc(inst_create_options)
     return instance_details
 
+
 def get_disk_size(disk_id):
     disk_info = run_yc(f"compute disk get --id {disk_id}")
     return int(int(disk_info["size"]) / 1024 / 1024 / 1024)
+
 
 def is_instance_meet_requirements(instance, cores, memory_g, disk_g):
     # will not check for image and ssh-key in this release
@@ -153,8 +158,10 @@ def is_instance_meet_requirements(instance, cores, memory_g, disk_g):
             get_disk_size(instance['boot_disk']['disk_id']) == disk_g
     ) else False
 
+
 def delete_instance(name):
     run_yc(f"compute instance delete --name {name}")
+
 
 def run_module():
     module_args = dict(
@@ -179,10 +186,13 @@ def run_module():
     need_to_delete = False
     need_to_create = True
 
+    if not shutil.which('yc'):
+        module.fail_json(msg=to_native("'yc' program is not found, please install and configure it \n"
+                                       "(https://cloud.yandex.com/en/docs/cli/quickstart)"), **result)
     all_instances = run_yc('compute instances list')
 
     # select info for instance with given name
-    instances_by_name = [ item for item in all_instances if item.get('name') == module.params['name']]
+    instances_by_name = [item for item in all_instances if item.get('name') == module.params['name']]
     instance_of_interest = instances_by_name[0] if instances_by_name else False
 
     if instance_of_interest:
