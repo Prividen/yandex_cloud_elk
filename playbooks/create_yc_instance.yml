@@ -1,0 +1,35 @@
+---
+- name: create {{ instance_item.key | capitalize }} instances
+  prividen.yandex_cloud_elk.create_yc_instance:
+    name: "{{ instance_item.key }}-{{ item }}"
+    cores: "{{ instance_item.value.cores | default(2) }}"
+    memory_g: "{{  instance_item.value.memory | default(2) }}"
+    disk_g: "{{ instance_item.value.disk | default(10) }}"
+    image: "{{ instance_item.value.image | default('centos-8') }}"
+    ssh_key: "{{ instance_item.value.ssh_key | default('~/.ssh/id_rsa.pub') }}"
+  register: hosts_details
+  loop: "{{ range(0, instance_item.value.number) | list }}"
+  tags: instances
+
+- name: register {{ instance_item.key | capitalize }} instances
+  ansible.builtin.add_host:
+    name: "{{ item.name }}"
+    ansible_host: "{{ item.public_ip }}"
+    groups: "{{ instance_item.key }}"
+    ansible_user: yc-user
+  changed_when: false
+  loop: "{{ hosts_details.results }}"
+  loop_control:
+    label: "{{ item.name }} | {{ item.public_ip }}"
+  tags: instances
+
+- name: Wait for {{ instance_item.key | capitalize }} instances
+  ansible.builtin.wait_for:
+    host: "{{ item.public_ip }}"
+    port: 22
+    search_regex: OpenSSH
+  changed_when: false
+  loop: "{{ hosts_details.results }}"
+  loop_control:
+    label: "{{ item.name }}"
+  tags: instances

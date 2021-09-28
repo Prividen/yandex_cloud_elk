@@ -1,0 +1,40 @@
+---
+- name: Create Yandex Cloud instances for ELK stack
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - include_tasks: create_yc_instance.yml
+      loop: "{{ hosts_spec |dict2items }}"
+      loop_control:
+        loop_var: instance_item
+        label: "{{ instance_item.key }}"
+      tags: do
+
+- name: Install Elasticsearch
+  hosts: elasticsearch
+  roles:
+    - prividen.yandex_cloud_elk.elasticsearch_role
+    - prividen.yandex_cloud_elk.logstash_role
+
+- name: Install Kibana
+  hosts: kibana
+  roles:
+    - prividen.yandex_cloud_elk.kibana_role
+
+- name: Install Filebeat
+  hosts: filebeat
+  roles:
+    - prividen.yandex_cloud_elk.filebeat_role
+
+
+- name: Show hosts access info
+  hosts: localhost
+  tasks:
+    - name: Show hosts access info
+      debug:
+        msg: "{{ item.key }}: {{ item.value.ansible_user }}@{{ item.value.ansible_host }}"
+      loop: "{{ hostvars | dict2items }}"
+      loop_control:
+        label: ""
+      tags: do
+
