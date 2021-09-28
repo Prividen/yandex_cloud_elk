@@ -22,3 +22,4 @@
       -Xms{{ es_java_memory_gb }}g
       -Xmx{{ es_java_memory_gb }}g
     mode: 0644
+  notify: restart Elasticsearch
