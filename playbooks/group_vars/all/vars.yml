@@ -1,7 +1,7 @@
 hosts_spec:
   elasticsearch:
     number: 1
-    memory: 8
+    memory: 4
     cores: 4
     disk: 16
   kibana:
@@ -10,10 +10,12 @@ hosts_spec:
     cores: 2
   filebeat:
     number: 1
-    memory: 4
+    memory: 2
     cores: 2
 
+es_java_memory_gb: 1
 elk_stack_version: "7.14.1"
+
 elasticsearch_version: "{{ elk_stack_version }}"
 logstash_version: "{{ elk_stack_version }}"
 kibana_version: "{{ elk_stack_version }}"
