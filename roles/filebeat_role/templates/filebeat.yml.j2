@@ -1,0 +1,9 @@
+---
+output.logstash:
+  hosts:
+{% for lhost in logstash_hosts %}
+  - "{{ hostvars[lhost].ansible_all_ipv4_addresses[0] | default(lhost) }}:5044"
+{% endfor %}
+setup.kibana:
+  host: "http://{{ hostvars[kibana_host].ansible_all_ipv4_addresses[0] | default(kibana_host) }}:5601"
+filebeat.config.modules.path: ${path.config}/modules.d/*.yml

@@ -1,0 +1,20 @@
+---
+- name: Fail if unsupported system detected
+  fail:
+    msg: "System {{ ansible_distribution }} is not support by this role"
+  when: ansible_distribution not in supported_systems
+
+- name: Fail if no elasticsearch_hosts var
+  fail:
+    msg: "Please provide array of elasticsearch hosts in 'elasticsearch_hosts' variable"
+  when: elasticsearch_hosts is undefined
+
+- name: Fail if no logstash_hosts var
+  fail:
+    msg: "Please provide array of logstash hosts in 'logstash_hosts' variable"
+  when: logstash_hosts is undefined
+
+- name: Fail if no kibana_host var
+  fail:
+    msg: "Please provide Kibana host in 'kibana_host' variable"
+  when: kibana_host is undefined

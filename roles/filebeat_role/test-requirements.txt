@@ -1,0 +1,6 @@
+molecule==3.5.1
+molecule_podman==1.0.1
+podman
+selinux
+ansible-lint
+yamllint

@@ -1,0 +1,12 @@
+---
+- src: https://github.com/Prividen/elasticsearch_role
+  version: "2.1.2-mk"
+  name: elasticsearch_role
+
+- src: https://github.com/Prividen/kibana_role
+  version: "1.0.3"
+  name: kibana_role
+
+- src: https://github.com/Prividen/logstash_role
+  version: "1.0.2"
+  name: logstash_role

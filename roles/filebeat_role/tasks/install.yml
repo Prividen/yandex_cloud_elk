@@ -1,0 +1,17 @@
+---
+- name: Install Filebeat rpm
+  become: true
+  yum:
+    name: "/tmp/{{ pkg_name }}"
+    state: present
+    disable_gpg_check: true
+  notify: restart Filebeat
+  when: pkg_mgr == 'yum'
+
+- name: Install Filebeat deb
+  become: true
+  apt:
+    deb: "/tmp/{{ pkg_name }}"
+    state: present
+  notify: restart Filebeat
+  when: pkg_mgr == 'apt'

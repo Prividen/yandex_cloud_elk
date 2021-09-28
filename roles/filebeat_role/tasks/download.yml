@@ -1,0 +1,13 @@
+- name: "Download Filebeat's package"
+  get_url:
+    url: "{{ pkg_url }}"
+    dest: "files/{{ pkg_name }}"
+  register: download_filebeat
+  delegate_to: localhost
+  until: download_filebeat is succeeded
+  when: filebeat_install_type == 'remote'
+- name: Copy Filebeat to managed node
+  copy:
+    src: "files/{{ pkg_name }}"
+    mode: 0644
+    dest: "/tmp/{{ pkg_name }}"

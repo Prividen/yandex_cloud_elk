@@ -1,0 +1,84 @@
+---
+- name: Configure Filebeat
+  become: true
+  template:
+    src: filebeat.yml.j2
+    mode: 0644
+    dest: /etc/filebeat/filebeat.yml
+  notify: restart Filebeat
+
+- name: Configure Filebeat setup config
+  become: true
+  template:
+    src: filebeat_setup.yml.j2
+    mode: 0644
+    dest: /etc/filebeat/filebeat_setup.yml
+
+- name: Check if system module was already enabled
+  stat:
+    path: /etc/filebeat/modules.d/system.yml
+  register: fb_system_module
+  tags: filebeat
+
+- name: Custom system module path
+  become: true
+  copy:
+    dest: /etc/filebeat/modules.d/system.yml.disabled
+    content: |
+      - module: system
+        syslog:
+          enabled: true
+          var.paths: ["/var/log/dnf.log", "/var/log/filebeat/filebeat"]
+        auth:
+          enabled: true
+    mode: 0644
+  when: not fb_system_module.stat.exists
+  tags: filebeat
+
+- name: Wait for Elasticsearch port is up
+  wait_for:
+    host: "{{ hostvars[item].ansible_all_ipv4_addresses[0] | default(item) }}"
+    port: 9200
+    timeout: 30
+  loop: "{{ elasticsearch_hosts }}"
+  tags: filebeat
+  when: (tox_testing is undefined) or (tox_testing is not true)
+
+- name: Wait for Kibana port is up
+  wait_for:
+    host: "{{ hostvars[kibana_host].ansible_all_ipv4_addresses[0] | default(kibana_host) }}"
+    port: 5601
+    timeout: 30
+  tags: filebeat
+  when: (tox_testing is undefined) or (tox_testing is not true)
+
+- name: Enable filebeat system module
+  become: true
+  command:
+    cmd: filebeat modules enable system
+    chdir: /usr/share/filebeat/bin
+    creates: /etc/filebeat/modules.d/system.yml
+  notify: restart Filebeat
+  tags: filebeat
+
+- name: Check if filebeat dashboards was already configured
+  uri:
+    url: "http://{{
+            hostvars[elasticsearch_hosts[0]].ansible_all_ipv4_addresses[0] | default(elasticsearch_hosts[0])
+          }}:9200/.kibana_{{ elk_stack_version }}/_search?q=filebeat"
+  register: dashboards_result
+  tags: filebeat
+  when: (tox_testing is undefined) or (tox_testing is not true)
+
+- name: Load Kibana dashboard
+  become: true
+  command:
+    cmd: filebeat -c filebeat_setup.yml setup
+    chdir: /usr/share/filebeat/bin
+  register: filebeat_setup
+  until: filebeat_setup is succeeded
+  notify: restart Filebeat
+  when:
+    - (dashboards_result.json is defined) and (dashboards_result.json.hits.total.value == 0)
+    - (tox_testing is undefined) or (tox_testing is not true)
+  tags: filebeat

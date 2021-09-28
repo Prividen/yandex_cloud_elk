@@ -1,0 +1,46 @@
+---
+# This is an example playbook to execute Ansible tests.
+
+- name: Verify
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Wait for Elasticsearch port is up
+      wait_for:
+        host: 127.0.0.1
+        port: 9200
+
+    - name: Wait for Kibana port is up
+      wait_for:
+        host: 127.0.0.1
+        port: 5601
+
+    - name: Wait for Logstash port is up
+      wait_for:
+        host: 127.0.0.1
+        port: 5044
+
+    - name: Define test log string
+      set_fact:
+        log_string: "Test_log_string_{{ 999999 |random }}"
+
+    - name: Send test log string to Logstash
+      become: true
+      shell:
+        cmd: "echo '{{ log_string }}' >> /var/log/testlog.log"
+      changed_when: false
+
+    - name: Wait 30 seconds for logs be flushed...
+      wait_for:
+        timeout: 30
+
+    - name: Looking for test log string in database
+      uri:
+        url: "http://127.0.0.1:9200/logstash-logs*/_search?q={{ log_string }}"
+      register: filebeat_status
+      until: filebeat_status is succeeded
+
+    - name: Check if the test string is found
+      assert:
+        that: filebeat_status.json.hits.total.value == 1
+        quiet: true
