@@ -4,3 +4,5 @@
   service:
     name: elasticsearch
     state: restarted
+    enabled: true
+  tags: elasticsearch
