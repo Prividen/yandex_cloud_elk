@@ -1,0 +1,8 @@
+---
+- name: restart Kibana
+  become: true
+  ansible.builtin.systemd:
+    name: kibana
+    state: restarted
+    enabled: true
+  tags: kibana

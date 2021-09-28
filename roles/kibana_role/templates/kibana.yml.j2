@@ -1,0 +1,7 @@
+---
+server.host: "0.0.0.0"
+elasticsearch.hosts:
+{% for ehost in elasticsearch_hosts %}
+  - "http://{{ hostvars[ehost].ansible_all_ipv4_addresses[0] | default(ehost) }}:9200"
+{% endfor %}
+kibana.index: ".kibana"

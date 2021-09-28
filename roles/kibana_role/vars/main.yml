@@ -1,0 +1,6 @@
+---
+supported_systems: ['CentOS', 'Red Hat Enterprise Linux', 'Ubuntu', 'Debian']
+pkg_mgr: "{{'yum' if (ansible_facts.pkg_mgr == 'yum' or ansible_facts.pkg_mgr == 'dnf')  else 'apt'}}"
+pkg_name: "kibana-{{ kibana_version }}-{{'x86_64.rpm' if pkg_mgr == 'yum' else 'amd64.deb'}}"
+repository: "https://artifacts.elastic.co/downloads/kibana"
+pkg_url: "{{ repository }}/{{ pkg_name }}"

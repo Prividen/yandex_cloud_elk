@@ -1,0 +1,13 @@
+- name: "Download Kibana's package"
+  get_url:
+    url: "{{ pkg_url }}"
+    dest: "files/{{ pkg_name }}"
+  register: download_kibana
+  delegate_to: localhost
+  until: download_kibana is succeeded
+  when: kibana_install_type == 'remote'
+- name: Copy Kibana to managed node
+  copy:
+    src: "files/{{ pkg_name }}"
+    mode: 0644
+    dest: "/tmp/{{ pkg_name }}"

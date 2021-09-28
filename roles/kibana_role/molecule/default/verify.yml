@@ -1,0 +1,21 @@
+---
+# This is an example playbook to execute Ansible tests.
+
+- name: Verify
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Wait for Kibana port is up
+      wait_for:
+        host: 127.0.0.1
+        port: 5601
+
+    - name: Get Kibana health status
+      uri:
+        url: "http://127.0.0.1:5601/api/task_manager/_health"
+      register: kibana_status
+
+    - name: Check if Kibana is health
+      assert:
+        that: kibana_status.json.status == "OK"
+        quiet: true
