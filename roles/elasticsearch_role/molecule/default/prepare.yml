@@ -1,0 +1,22 @@
+---
+- name: prepare test hosts
+  hosts: all
+  tasks:
+    - name: Make sudo installed
+      package:
+        name: sudo
+        state: present
+
+    - name: Create a directory for Java options
+      file:
+        path: /etc/elasticsearch/jvm.options.d
+        state: directory
+        mode: 0755
+
+    - name: Java memory limits
+      copy:
+        dest: /etc/elasticsearch/jvm.options.d/local.options
+        content: |
+          -Xms{{ es_java_memory_gb }}g
+          -Xmx{{ es_java_memory_gb }}g
+        mode: 0644

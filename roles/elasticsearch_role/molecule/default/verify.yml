@@ -1,0 +1,28 @@
+---
+# This is an example playbook to execute Ansible tests.
+
+- name: Verify
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Wait for Elasticsearch port is up
+      wait_for:
+        host: 127.0.0.1
+        port: 9200
+
+    - name: Get Elasticsearch health status
+      uri:
+        url: "http://127.0.0.1:9200/_cluster/health"
+      register: es_status
+
+    - name: Get Elasticsearch version
+      uri:
+        url: "http://127.0.0.1:9200"
+      register: es_version
+
+    - name: Check if Elasticsearch is healthy and proper version
+      assert:
+        that:
+          - es_status.json.status == "green"
+          - es_version.json.version.number == elasticsearch_version
+        quiet: true
