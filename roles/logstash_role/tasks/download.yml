@@ -1,0 +1,13 @@
+- name: "Download Logstash's package"
+  get_url:
+    url: "{{ pkg_url }}"
+    dest: "files/{{ pkg_name }}"
+  register: download_logstash
+  delegate_to: localhost
+  until: download_logstash is succeeded
+  when: logstash_install_type == 'remote'
+- name: Copy Logstash to managed node
+  copy:
+    src: "files/{{ pkg_name }}"
+    mode: 0644
+    dest: "/tmp/{{ pkg_name }}"

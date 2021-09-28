@@ -1,0 +1,8 @@
+---
+- name: prepare test hosts
+  hosts: all
+  tasks:
+    - name: Make sudo installed
+      package:
+        name: sudo
+        state: present

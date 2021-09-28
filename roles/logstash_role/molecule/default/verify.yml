@@ -1,0 +1,33 @@
+---
+- name: Verify
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Wait for Logstash test port is up
+      wait_for:
+        host: 127.0.0.1
+        port: "{{ logstash_tcp_test_port }}"
+
+    - name: Define test log string
+      set_fact:
+        log_string: "Test_log_string_{{ 999999 |random }}"
+
+    - name: Send test log string to Logstash
+      command:
+        cmd: "logger '{{ log_string }}' -n 127.0.0.1 -T -P {{ logstash_tcp_test_port }}"
+      changed_when: false
+
+    - name: Wait a while...
+      wait_for:
+        timeout: 5
+
+    - name: Search for test log string in database
+      uri:
+        url: "http://127.0.0.1:9200/logstash-test/_search?q={{ log_string }}"
+      register: logstash_status
+      until: logstash_status is succeeded
+
+    - name: Check if test string found
+      assert:
+        that: logstash_status.json.hits.total.value == 1
+        quiet: true

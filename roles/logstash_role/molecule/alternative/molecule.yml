@@ -1,0 +1,33 @@
+---
+dependency:
+  name: galaxy
+driver:
+  name: podman
+platforms:
+  - name: instance
+    image: docker.io/jrei/systemd-centos:8
+    pre_build_image: true
+    privileged: true
+    volumes:
+      - "/sys/fs/cgroup:/sys/fs/cgroup:ro,z"
+    command: /sbin/init
+
+provisioner:
+  name: ansible
+  inventory:
+    group_vars:
+      all:
+        elk_stack_version: "7.14.1"
+        logstash_version: "{{ elk_stack_version }}"
+        elasticsearch_hosts: [ '127.0.0.1' ]
+
+verifier:
+  name: ansible
+
+scenario:
+  test_sequence:
+    - destroy
+    - create
+    - prepare
+    - converge
+    - destroy

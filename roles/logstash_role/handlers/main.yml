@@ -1,0 +1,8 @@
+---
+- name: restart Logstash
+  become: true
+  ansible.builtin.systemd:
+    name: logstash
+    state: restarted
+    enabled: true
+  tags: logstash

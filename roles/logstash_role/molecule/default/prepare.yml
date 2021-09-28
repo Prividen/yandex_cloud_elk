@@ -1,0 +1,38 @@
+---
+- name: Prepare test hosts
+  hosts: all
+  pre_tasks:
+    - name: Make sudo installed
+      package:
+        name: sudo
+        state: present
+
+    - name: Create a directory for Java options
+      file:
+        path: /etc/elasticsearch/jvm.options.d
+        state: directory
+        mode: 0755
+
+    - name: Java memory limits
+      copy:
+        dest: /etc/elasticsearch/jvm.options.d/local.options
+        content: |
+          -Xms{{ es_java_memory_gb }}g
+          -Xmx{{ es_java_memory_gb }}g
+        mode: 0644
+
+    - name: Create a directory for Logstash configs
+      file:
+        path: /etc/logstash/conf.d
+        state: directory
+        mode: 0755
+
+    - name: Config for Logstash test TCP input
+      become: true
+      template:
+        src: logstash-tcp-test.conf.j2
+        mode: 0644
+        dest: /etc/logstash/conf.d/logstash-tcp-test.conf
+
+  roles:
+    - elasticsearch_role

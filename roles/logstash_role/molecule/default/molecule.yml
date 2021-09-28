@@ -1,0 +1,58 @@
+---
+dependency:
+  name: galaxy
+driver:
+  name: docker
+platforms:
+  - name: centos7
+    image: docker.io/jrei/systemd-centos:7
+    pre_build_image: true
+    privileged: true
+    volumes:
+      - "/sys/fs/cgroup:/sys/fs/cgroup:ro,z"
+    command: /sbin/init
+
+  - name: centos8
+    image: docker.io/jrei/systemd-centos:8
+    pre_build_image: true
+    privileged: true
+    volumes:
+      - "/sys/fs/cgroup:/sys/fs/cgroup:ro,z"
+    command: /sbin/init
+
+  - name: ubuntu18
+    image: docker.io/jrei/systemd-ubuntu:18.04
+    pre_build_image: true
+    privileged: true
+    volumes:
+      - "/sys/fs/cgroup:/sys/fs/cgroup:ro,z"
+    command: /sbin/init
+
+
+  - name: ubuntu20
+    image: docker.io/jrei/systemd-ubuntu:20.04
+    pre_build_image: true
+    privileged: true
+    volumes:
+      - "/sys/fs/cgroup:/sys/fs/cgroup:ro,z"
+    command: /sbin/init
+
+provisioner:
+  name: ansible
+  inventory:
+    group_vars:
+      all:
+        elk_stack_version: "7.14.1"
+        elasticsearch_version: "{{ elk_stack_version }}"
+        logstash_version: "{{ elk_stack_version }}"
+        elasticsearch_hosts: [ '127.0.0.1' ]
+        logstash_tcp_test_port: 5045
+        es_java_memory_gb: 1
+
+verifier:
+  name: ansible
+
+lint: |
+  set -e
+  yamllint -c ./.yamllint .
+  ansible-lint

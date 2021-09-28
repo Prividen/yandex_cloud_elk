@@ -1,0 +1,8 @@
+---
+- name: Configure Logstash
+  become: true
+  template:
+    src: logstash.conf.j2
+    mode: 0644
+    dest: /etc/logstash/conf.d/logstash.conf
+  notify: restart Logstash

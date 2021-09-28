@@ -1,0 +1,14 @@
+input {
+  tcp {
+    port => {{ logstash_tcp_test_port }}
+  }
+}
+
+output {
+  elasticsearch {
+    hosts => [{% for ehost in elasticsearch_hosts %}{{
+		', ' if loop.index > 1 else ''
+	}}"http://{{ hostvars[ehost].ansible_all_ipv4_addresses[0] | default(ehost) }}:9200"{% endfor %}]
+    index => "logstash-test"
+  }
+}

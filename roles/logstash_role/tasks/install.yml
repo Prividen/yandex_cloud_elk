@@ -1,0 +1,17 @@
+---
+- name: Install Logstash rpm
+  become: true
+  yum:
+    name: "/tmp/{{ pkg_name }}"
+    state: present
+    disable_gpg_check: true
+  notify: restart Logstash
+  when: pkg_mgr == 'yum'
+
+- name: Install Logstash deb
+  become: true
+  apt:
+    deb: "/tmp/{{ pkg_name }}"
+    state: present
+  notify: restart Logstash
+  when: pkg_mgr == 'apt'
